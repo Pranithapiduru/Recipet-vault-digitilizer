@@ -1,0 +1,17 @@
+﻿c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\analytics\advanced_analytics.py
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\analytics\advanced_analytics.py:38:34 - error: Cannot access attribute "dt" for class "Series[float]"
+  ┬á┬áNo overloads for "__get__" match the provided arguments
+  ┬á┬áArgument of type "Series[float]" cannot be assigned to parameter "instance" of type "Series[Period]" in function "__get__"
+  ┬á┬á┬á┬á"Series[float]" is not assignable to "Series[Period]"
+  ┬á┬á┬á┬á┬á┬áType parameter "S1@Series" is invariant, but "float" is not the same as "Period" (reportAttributeAccessIssue)
+c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\database\models.py
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\database\models.py:2:25 - error: "Base" is unknown import symbol (reportAttributeAccessIssue)
+c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\ui\analytics_ui.py
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\ui\analytics_ui.py:190:120 - error: Argument of type "Literal['.2s']" cannot be assigned to parameter "text_auto" of type "bool" in function "bar"
+  ┬á┬á"Literal['.2s']" is not assignable to "bool" (reportArgumentType)
+c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\ui\validation_ui.py
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\ui\validation_ui.py:97:25 - error: Operator "*" not supported for "None" (reportOptionalOperand)
+c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\verify_advanced_features.py
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\verify_advanced_features.py:37:8 - error: Object of type "None" is not subscriptable (reportOptionalSubscript)
+  c:\Users\p.pranitha\OneDrive\Documents\Receipt-Vault-Analyzer\verify_advanced_features.py:37:40 - error: Object of type "None" is not subscriptable (reportOptionalSubscript)
+6 errors, 0 warnings, 0 informations

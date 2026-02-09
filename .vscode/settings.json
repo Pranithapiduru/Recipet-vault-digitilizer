@@ -1,0 +1,17 @@
+{
+    "python.defaultInterpreterPath": "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\venv\\Scripts\\python.exe",
+    "python.analysis.extraPaths": [
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\venv\\Lib\\site-packages",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\ui",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\database",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\config",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\ai",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\analytics",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\utils",
+        "c:\\Users\\p.pranitha\\OneDrive\\Documents\\Receipt-Vault-Analyzer\\ocr"
+    ],
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.typeCheckingMode": "basic"
+}

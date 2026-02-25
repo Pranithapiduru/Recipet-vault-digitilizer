@@ -15,3 +15,5 @@ streamlit-TTS
 sqlalchemy
 plotly
 python-dotenv
+reportlab
+openpyxl

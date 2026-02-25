@@ -1,16 +1,20 @@
-from pdf2image import convert_from_bytes
-from typing import List
-from PIL import Image
+import logging
+import os
 
-from config.config import POPPLER_PATH
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+LOG_FILE = os.path.join(LOG_DIR, "app.log")
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+def log_info(message: str):
+    logging.info(message)
 
 
-def pdf_to_images(pdf_bytes: bytes) -> List[Image.Image]:
-    """
-    Convert PDF bytes into list of PIL Images using Poppler
-    """
-    images = convert_from_bytes(
-        pdf_bytes,
-        poppler_path=POPPLER_PATH
-    )
-    return images
+def log_error(message: str):
+    logging.error(message)

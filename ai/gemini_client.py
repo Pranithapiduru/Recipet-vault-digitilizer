@@ -1,52 +1,87 @@
 import json  # Standard IDE sync complete
-import google.generativeai as genai
-from ai.prompts import RECEIPT_EXTRACTION_PROMPT, DATA_ANALYSIS_PROMPT, CHAT_WITH_DATA_PROMPT
+import time
+import re as _re
+import google.generativeai as genai  # type: ignore
+from ai.prompts import RECEIPT_EXTRACTION_PROMPT, DATA_ANALYSIS_PROMPT, CHAT_WITH_DATA_PROMPT  # type: ignore
+
+# Models to try in order — gemini-1.5-flash has the best free-tier quota
+_PREFERRED_MODELS = [
+    "models/gemini-1.5-flash",
+    "models/gemini-1.5-pro",
+    "models/gemini-pro",
+]
+
+def _parse_retry_seconds(error_str: str) -> int:
+    """Extract retry delay from a 429 error string if present."""
+    match = _re.search(r"retry[_ ](?:in|after)[^\d]*(\d+)", error_str, _re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    match = _re.search(r"(\d+)\.?\d*\s*s", error_str)
+    if match:
+        return int(match.group(1))
+    return 60  # safe default
+
+def _friendly_error(e: Exception) -> str:
+    """Convert API exceptions to user-friendly strings."""
+    err = str(e)
+    if "429" in err or "quota" in err.lower() or "RESOURCE_EXHAUSTED" in err:
+        wait = _parse_retry_seconds(err)
+        mins = wait // 60
+        secs = wait % 60
+        time_str = f"{mins}m {secs}s" if mins else f"{secs}s"
+        return (
+            f"⚠️ **Gemini API free-tier quota reached.**\n\n"
+            f"You've hit the daily limit for AI requests (20/day on the free plan). "
+            f"Please retry in **{time_str}**, or upgrade your Gemini API plan at "
+            f"[ai.google.dev](https://ai.google.dev)."
+        )
+    if "401" in err or "API_KEY" in err or "invalid" in err.lower():
+        return "❌ **Invalid Gemini API Key.** Please check the key in the sidebar."
+    if "404" in err or "not found" in err.lower():
+        return "❌ **Gemini model not available.** The selected model is unavailable for your API key."
+    return f"❌ **AI Error:** {err}"
 
 class GeminiClient:
     """
-    Client for interacting with Google Gemini 1.5 Flash for receipt analysis.
+    Client for interacting with Google Gemini for receipt analysis.
+    Uses gemini-1.5-flash by default (best free-tier quota).
     """
     def __init__(self, api_key):
         if not api_key:
             raise ValueError("API Key is required")
-        
-        genai.configure(api_key=api_key)
-        
-        # Dynamic Model Selection
+
+        genai.configure(api_key=api_key)  # type: ignore
+
         self.model = None
         try:
-            # List available models to find one that works
-            available_models = []
-            for m in genai.list_models():
-                if 'generateContent' in m.supported_generation_methods:
-                    available_models.append(m.name)
-            
-            # Prioritize models
-            preferred_order = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-pro"]
-            
-            # Check for matches
-            for preferred in preferred_order:
+            available_models = [
+                m.name for m in genai.list_models()  # type: ignore
+                if 'generateContent' in m.supported_generation_methods
+                # Explicitly exclude 2.x models to stay on free-tier-friendly 1.5
+                and "2." not in m.name
+            ]
+
+            for preferred in _PREFERRED_MODELS:
                 if preferred in available_models:
-                    self.model = genai.GenerativeModel(preferred)
-                    # print(f"Selected Gemini Model: {preferred}")
+                    self.model = genai.GenerativeModel(preferred)  # type: ignore
                     break
-            
-            # If no strict match, look for partials
+
+            # Partial match fallback — pick first 1.5-flash available
             if not self.model:
                 for m in available_models:
-                    if "flash" in m:
-                        self.model = genai.GenerativeModel(m)
+                    if "1.5" in m and "flash" in m:
+                        self.model = genai.GenerativeModel(m)  # type: ignore
                         break
-                
+
             if not self.model and available_models:
-                 self.model = genai.GenerativeModel(available_models[0])
-                 
+                self.model = genai.GenerativeModel(available_models[0])  # type: ignore
+
         except Exception as e:
             print(f"Error listing models: {e}. Falling back to default.")
 
-        # Hard fallback if listing failed or no model found
+        # Hard fallback
         if not self.model:
-             self.model = genai.GenerativeModel("gemini-1.5-flash")
+            self.model = genai.GenerativeModel("gemini-1.5-flash")  # type: ignore
 
     def _generate_content_safe(self, prompt_parts):
         if not self.model:
@@ -54,12 +89,19 @@ class GeminiClient:
         try:
             return self.model.generate_content(prompt_parts)
         except Exception as e:
-             # Logic for 404 is now mostly handled by init choice, but keep safety
-            if "404" in str(e) or "not found" in str(e).lower():
-                 # If current failed, try Pro legacy one last time
-                 print("Current model failed, trying gemini-pro")
-                 return genai.GenerativeModel("gemini-pro").generate_content(prompt_parts)
+            err = str(e)
+            # On quota error, raise immediately with friendly message
+            if "429" in err or "RESOURCE_EXHAUSTED" in err or "quota" in err.lower():
+                raise RuntimeError(_friendly_error(e))
+            # On model-not-found, try legacy gemini-pro once
+            if "404" in err or "not found" in err.lower():
+                print("Current model failed, trying gemini-pro")
+                try:
+                    return genai.GenerativeModel("gemini-pro").generate_content(prompt_parts)  # type: ignore
+                except Exception as e2:
+                    raise RuntimeError(_friendly_error(e2))
             raise e
+
 
     def extract_receipt(self, image):
         """
